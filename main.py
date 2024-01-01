@@ -1,5 +1,5 @@
 import datetime
-import os.path
+import os
 import sys
 
 cmdline_args = sys.argv
@@ -59,12 +59,3 @@ class Logger:
         with open(self.logFile, "a+") as file:
             file.write(data+end)
 
-
-if __name__ == '__main__':
-    logger = Logger()
-    logger.setLogLevel(Logger.DEBUG)
-    logger.log("Hello world!", Logger.DEBUG)
-    logger.log("Hello world!", Logger.INFO)
-    logger.log("Hello world!", Logger.WARN)
-    logger.log("Hello world!", Logger.ERR)
-    logger.log("Hello world!", Logger.FATAL)

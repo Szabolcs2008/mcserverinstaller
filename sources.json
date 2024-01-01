@@ -1,0 +1,24 @@
+{
+  "server": {
+    "spigot": {
+      "latest": "https://download.getbukkit.org/spigot/spigot-1.20.4.jar"
+    },
+    "paper": {
+      "latest": "https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/365/downloads/paper-1.20.4-365.jar"
+    },
+    "purpur": {
+      "latest": "https://api.purpurmc.org/v2/purpur/1.20.4/2113/download"
+    }
+  },
+  "plugins": {
+    "essentials": {
+      "latest": ""
+    },
+    "worldedit": {
+      "latest": ""
+    },
+    "skinsrestorer": {
+      "latest": ""
+    }
+  }
+}
