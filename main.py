@@ -1,6 +1,7 @@
 import datetime
 import os
 import sys
+import requests
 
 cmdline_args = sys.argv
 
@@ -59,3 +60,17 @@ class Logger:
         with open(self.logFile, "a+") as file:
             file.write(data+end)
 
+logger = Logger()
+
+def getDownloadSources():
+    url = "https://raw.githubusercontent.com/Szabolcs2008/mcserverinstaller/master/sources.json"
+    resp = requests.get(url)
+    if resp.status_code == 200:
+        pass
+    else:
+        if os.path.exists("sources.json"):
+            logger.log("Failed to update the download sources! The downloaded files might be out of date! Proceed with caution", Logger.WARN)
+        else:
+            logger.log("Failed to download the file sources! The program will exit.", Logger.FATAL)
+
+getDownloadSources()
