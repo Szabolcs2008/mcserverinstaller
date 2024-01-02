@@ -8,7 +8,13 @@
     },
     "purpur": {
       "latest": "https://api.purpurmc.org/v2/purpur/1.20.4/2113/download"
-    }
+    },
+    "vanilla": {
+      "latest": "https://piston-data.mojang.com/v1/objects/8dd1a28015f51b1803213892b50b7b4fc76e594d/server.jar"
+    },
+    "bungeecord": "https://ci.md-5.net/job/BungeeCord/lastSuccessfulBuild/artifact/bootstrap/target/BungeeCord.jar",
+    "waterfall": "https://api.papermc.io/v2/projects/waterfall/versions/1.20/builds/560/downloads/waterfall-1.20-560.jar",
+    "velocity": "https://api.papermc.io/v2/projects/velocity/versions/3.3.0-SNAPSHOT/builds/312/downloads/velocity-3.3.0-SNAPSHOT-312.jar"
   },
   "plugins": {
     "essentials": {
@@ -18,6 +24,12 @@
       "latest": ""
     },
     "skinsrestorer": {
+      "latest": ""
+    },
+    "authme": {
+      "latest": ""
+    },
+    "nexauth":{
       "latest": ""
     }
   }
