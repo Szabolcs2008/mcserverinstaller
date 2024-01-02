@@ -91,6 +91,8 @@ def getDownloadSources():
         return
     if resp.status_code == 200:
         logger.log("Updated file sources", Logger.INFO)
+        with open("sources.json", "w+") as sources:
+            sources.write(resp.content.decode())
     else:
         if os.path.exists("sources.json"):
             logger.log("Failed to update the download sources! The downloaded files might be out of date! Proceed with caution", Logger.WARN)
