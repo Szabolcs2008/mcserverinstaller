@@ -1,13 +1,26 @@
 {
   "server": {
     "spigot": {
-      "latest": "https://download.getbukkit.org/spigot/spigot-1.20.4.jar"
+      "latest": "https://download.getbukkit.org/spigot/spigot-1.20.4.jar",
+      "1.20.1": "https://download.getbukkit.org/spigot/spigot-1.20.1.jar",
+      "1.19.4": "https://download.getbukkit.org/spigot/spigot-1.19.4.jar",
+      "1.18.2": "https://download.getbukkit.org/spigot/spigot-1.18.2.jar",
+      "1.12.2": "https://cdn.getbukkit.org/spigot/spigot-1.12.2.jar",
+      "1.8.8": "https://cdn.getbukkit.org/spigot/spigot-1.8.8-R0.1-SNAPSHOT-latest.jar"
     },
     "paper": {
-      "latest": "https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/365/downloads/paper-1.20.4-365.jar"
+      "latest": "https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/365/downloads/paper-1.20.4-365.jar",
+      "1.20.1": "https://api.papermc.io/v2/projects/paper/versions/1.20.1/builds/196/downloads/paper-1.20.1-196.jar",
+      "1.19.4": "https://api.papermc.io/v2/projects/paper/versions/1.19.4/builds/550/downloads/paper-1.19.4-550.jar",
+      "1.18.2": "https://api.papermc.io/v2/projects/paper/versions/1.18.2/builds/388/downloads/paper-1.18.2-388.jar",
+      "1.16.5": "https://api.papermc.io/v2/projects/paper/versions/1.16.5/builds/794/downloads/paper-1.16.5-794.jar"
     },
     "purpur": {
-      "latest": "https://api.purpurmc.org/v2/purpur/1.20.4/2113/download"
+      "latest": "https://api.purpurmc.org/v2/purpur/1.20.4/2113/download",
+      "1.20.1": "https://api.purpurmc.org/v2/purpur/1.20.1/2062/download",
+      "1.19.4": "https://api.purpurmc.org/v2/purpur/1.19.4/1985/download",
+      "1.18.2": "https://api.purpurmc.org/v2/purpur/1.18.2/1632/download",
+      "1.16.5": "https://api.purpurmc.org/v2/purpur/1.16.5/1171/download"
     },
     "vanilla": {
       "latest": "https://piston-data.mojang.com/v1/objects/8dd1a28015f51b1803213892b50b7b4fc76e594d/server.jar"
