@@ -74,7 +74,8 @@ class Logger:
             file.write(data+end)
 
 logger = Logger()
-logger.setLogLevel(Logger.DEBUG)
+if "--debug" in cmdline_args:
+    logger.setLogLevel(Logger.DEBUG)
 
 def clearConsole():
     cmd = "clear"
@@ -186,15 +187,20 @@ def create(name, template=False):
     print("1 | Spigot")
     print("* 2 | Paper/Spigot")
     print("3 | Purpur/Spigot")
-    print("10 | Bungeecord")
-    print("11 | Velocity (Bungee)")
-    print("12 | Waterfall (Bungee)")
+    # print("10 | Bungeecord")
+    # print("11 | Velocity (Bungee)")
+    # print("12 | Waterfall (Bungee)")
     while server_settings["software"] == None:
         software = input("Server software [2]: ")
         if software == "":
-            server_settings["software"] = mcVer(2)
+            software = 2
         try:
-            server_settings["software"] = mcVer(int(software))
+            if int(software) > 3:
+                print("Software ID must me between 0 and 3")
+                server_settings["software"] = None
+            else:
+                server_settings["software"] = mcVer(int(software))
+
         except ValueError:
             print("Invalid response")
             server_settings["software"] = None
@@ -376,7 +382,7 @@ def create(name, template=False):
     while server_settings["plugins"]["plugin_string"] == None:
         plugins = input("Plugins [0]: ")
         if plugins == "":
-            server_settings["plugins"]["plugin_string"] = "0"*len(server_settings["plugins"]["available"])-1
+            server_settings["plugins"]["plugin_string"] = "0"*(len(server_settings["plugins"]["available"])-1)
             break
         try:
             plugins = int(plugins)
@@ -384,7 +390,7 @@ def create(name, template=False):
             print("Invalid number.")
             server_settings["plugins"]["plugin_string"] = None
             continue
-        plugins = ("{:0"+str(len(server_settings["plugins"]["available"])-1)+"b}").format(int(plugins))
+        plugins = ("{:0"+str(len(server_settings["plugins"]["available"]))+"b}").format(int(plugins))
         if len(plugins) > len(sources["plugins"]):
             print("Too large plugin int. Please check your calculations")
             server_settings["plugins"]["plugin_string"] = None
@@ -395,7 +401,7 @@ def create(name, template=False):
         if server_settings["plugins"]["plugin_string"][idx] == "1":
             if len(server_settings["plugins"]["available"][server_settings["plugins"]["ids"][str(idx)]]) > 1:
 
-                print(f"Choose version for plugin '{server_settings["plugins"]["ids"][str(idx)]}'")
+                print("Choose version for plugin '"+server_settings["plugins"]["ids"][str(idx)]+"'")
                 tmp = 0
                 for ver in sources["plugins"][server_settings["plugins"]["ids"][str(idx)]]:
                     print(f"{tmp} | {ver}")
@@ -407,13 +413,15 @@ def create(name, template=False):
                         server_settings["plugins"]["plugin_versions"][server_settings["plugins"]["ids"][str(idx)]] = server_settings["plugins"]["available"][server_settings["plugins"]["ids"][str(idx)]][0]
                         break
                     try:
+                        if not int(choice) <= tmp:
+                            print(f"The answer must be between 0 and {tmp}")
+                            server_settings["plugins"]["plugin_versions"][server_settings["plugins"]["ids"][str(idx)]] = None
                         server_settings["plugins"]["plugin_versions"][server_settings["plugins"]["ids"][str(idx)]] = server_settings["plugins"]["available"][server_settings["plugins"]["ids"][str(idx)]][int(choice)]
                     except:
                         print("Invalid number")
                         server_settings["plugins"]["plugin_versions"][server_settings["plugins"]["ids"][str(idx)]] = None
-                    if not choice <= tmp:
-                        print(f"The answer must be between 0 and {tmp}")
-                        server_settings["plugins"]["plugin_versions"][server_settings["plugins"]["ids"][str(idx)]] = None
+                        continue
+
 
             else:
                 server_settings["plugins"]["plugin_versions"][server_settings["plugins"]["ids"][str(idx)]] = "latest"
@@ -436,16 +444,19 @@ def create(name, template=False):
             with open(name+"/server.properties", 'w') as server_properties:
                 if server_settings["rcon-password"] == None:
                     server_settings["rcon-password"] = ""
-                data = [f"server-port={server_settings["server-port"]}",
-                        f"enable-rcon={str(server_settings["rcon-enabled"]).casefold()}",
-                        f"rcon.password={server_settings["rcon-password"]}",
-                        f"rcon.port={server_settings["rcon-port"]}"
-                        f"level-name={server_settings["world-name"]}",
-                        f"online-mode={str(server_settings["online-mode"]).casefold()}"]
+                data = [f"server-port="+str(server_settings["server-port"]),
+                        f"enable-rcon="+str(server_settings["rcon-enabled"]).casefold(),
+                        f"rcon.password="+server_settings["rcon-password"],
+                        f"rcon.port="+str(server_settings["rcon-port"]),
+                        f"level-name="+server_settings["world-name"],
+                        f"online-mode="+str(server_settings["online-mode"]).casefold()]
                 server_properties.write("\n".join(data))
             if server_settings["eula"]:
                 with open(name+"/eula.txt", 'w') as eula_file:
                     eula_file.write("eula=true")
+            else:
+                with open(name+"/eula.txt", 'w') as eula_file:
+                    eula_file.write("eula=false")
 
 
             logger.log(server_settings["plugins"]["plugin_string"], Logger.DEBUG)
@@ -454,8 +465,8 @@ def create(name, template=False):
             download_file(type="server", name=server_settings["software"], version=server_settings["version"],
                           dir=name+"/")
             for plugin in server_settings["plugins"]["plugin_versions"]:
-                download_file(type="plugins", name=plugin, version=server_settings["plugins"]["plugin_versions"][plugin], dir=name+"/plugins")
-
+                download_file(type="plugins", name=plugin, version=server_settings["plugins"]["plugin_versions"][plugin], dir=name+"/plugins/")
+            logger.log("Your server is ready.")
 
 
 # if not os.path.exists("templates/"):
@@ -474,12 +485,12 @@ try:
             logger.log("exit | Exits the program", Logger.INFO)
             logger.log("new <name> [template (not finished)]| Creates a new server", Logger.INFO)
             logger.log("delete <name> | deletes a server", Logger.INFO)
-            #logger.log("installdir <path> | sets the installation directory", Logger.INFO)
-            #logger.log("template <...>", Logger.INFO)
-            #logger.log("          create <name> | Creates a new server template", Logger.INFO)
-            #logger.log("          delete <name> | Creates a new server template", Logger.INFO)
-            #logger.log("          display <name> | Prints the data of a template", Logger.INFO)
-            #logger.log("          list | Lists the available templates", Logger.INFO)
+            # TODO: actually implement templates
+            # logger.log("template <...>", Logger.INFO)
+            # logger.log("          create <name> | Creates a new server template", Logger.INFO)
+            # logger.log("          delete <name> | Creates a new server template", Logger.INFO)
+            # logger.log("          display <name> | Prints the data of a template", Logger.INFO)
+            # logger.log("          list | Lists the available templates", Logger.INFO)
         elif cmd[0].casefold() == "new":
             if len(cmd) >= 2:
                 create(cmd[1])
