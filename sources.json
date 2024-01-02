@@ -18,19 +18,36 @@
   },
   "plugins": {
     "essentials": {
-      "latest": ""
+      "latest": "https://github.com/EssentialsX/Essentials/releases/download/2.20.1/EssentialsX-2.20.1.jar",
+      "latset-dev-version": "https://ci.ender.zone/job/EssentialsX/lastSuccessfulBuild/artifact/jars/EssentialsX-2.21.0-dev+24-0af4436.jar"
     },
     "worldedit": {
-      "latest": ""
+      "latest": "https://dev.bukkit.org/projects/worldedit/files/4954406/download",
+      "1.13-1.19.4": "https://dev.bukkit.org/projects/worldedit/files/4445117/download",
+      "1.8-1.12.x": "https://dev.bukkit.org/projects/worldedit/files/2597538/download"
+    },
+    "worldguard": {
+      "latest": "https://dev.bukkit.org/projects/worldguard/files/4675318/download",
+      "1.19": "https://dev.bukkit.org/projects/worldguard/files/4554903/download",
+      "1.17-1.18.x": "https://dev.bukkit.org/projects/worldguard/files/3677516/download",
+      "1.12": "https://dev.bukkit.org/projects/worldguard/files/2610618/download",
+      "1.8.1.11.x": "https://dev.bukkit.org/projects/worldguard/files/956770/download"
     },
     "skinsrestorer": {
-      "latest": ""
+      "latest": "https://www.spigotmc.org/resources/skinsrestorer.2124/download?version=522512",
+      "latest-github": "https://github.com/SkinsRestorer/SkinsRestorerX/releases/download/15.0.4/SkinsRestorer.jar"
     },
+    "multiverse-core": {
+      "latest": "https://dev.bukkit.org/projects/multiverse-core/files/4744018/download",
+      "(1.8)-1.9-1.12": "https://dev.bukkit.org/projects/multiverse-core/files/2428161/download"
+    }
+  },
+  "auth": {
     "authme": {
-      "latest": ""
+      "latest": "https://www.spigotmc.org/resources/authmereloaded.6269/download?version=392191"
     },
     "nexauth":{
-      "latest": ""
+      "latest": "https://www.spigotmc.org/resources/nexauth-simple-and-lightweight-login-system.88015/download?version=520671"
     }
   }
 }

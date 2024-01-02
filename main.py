@@ -2,6 +2,7 @@ import datetime
 import getpass
 import json
 import os
+import shutil
 import sys
 import requests
 
@@ -127,9 +128,9 @@ def download_file(type, name, version, dir=""):
     if sources[type][name][version].split("/")[-1][len(sources[type][name][version].split("/")[-1])-4:] == ".jar":
         filename = sources[type][name][version].split("/")[-1]
     else:
-
         filename = name+".jar"
     url = sources[type][name][version]
+    logger.log(f"Downloading file '{filename}' from '{url}'")
     try:
         response = requests.get(url)
     except:
@@ -139,7 +140,7 @@ def download_file(type, name, version, dir=""):
     if response.status_code == 200:
         with open(dir+filename, 'wb') as file:
             file.write(response.content)
-            logger.log(f"Successfully downloaded ''", Logger.INFO)
+            logger.log(f"Successfully downloaded '{filename}'", Logger.INFO)
     else:
         logger.log(f"Failed to download file '{filename}'. Status code: {response.status_code}", Logger.ERR)
 
@@ -277,8 +278,8 @@ def create(name, template=False):
 
     if auth_plugin:
         print("Witch auth plugin do you want to use?")
-        print("0 | authme")
-        print("1 | nexauth")
+        print("0 | authme (1.7-1.16.x recommended, but works on 1.16+)")
+        print("1 | nexauth (1.17+)")
         while auth_plugin_id == None:
             auth_plugin_id = input("Choice [0]: ")
             if auth_plugin_id == "":
@@ -292,6 +293,31 @@ def create(name, template=False):
             except:
                 print("Invalid plugin ID")
                 auth_plugin_id = None
+        auth_plugins = list(name for name in sources["auth"])
+        plugin_versions = list(ver for ver in sources["auth"][auth_plugins[auth_plugin_id]])
+        auth_ver = None
+        if len(plugin_versions) > 1:
+            print("Choose the version for the auth plugin")
+            for ver in plugin_versions:
+                print(f"{plugin_versions.index(ver)} | {ver}")
+            while auth_ver == None:
+                choice = input("Auth plugin version [0]: ")
+                if choice == "":
+                    auth_ver = 0
+                else:
+                    try:
+                        choice = int(choice)
+                    except:
+                        print("Invalid number")
+                        auth_ver = None
+                        continue
+                    if choice > len(plugin_versions):
+                        auth_ver = None
+                        print(f"The version number must be between 0 and {len(plugin_versions)}")
+        else:
+            auth_ver = "latest"
+
+
 
     cleatConsole()
     print("Plugins that can be preinstalled:")
@@ -362,6 +388,8 @@ def create(name, template=False):
                 return
             logger.log("Creating server.properties", Logger.INFO)
             with open(name+"/server.properties", 'w') as server_properties:
+                if rcon_password == None:
+                    rcon_password = ""
                 data = [f"server-port={port}",
                         f"enable-rcon={str(rcon).casefold()}",
                         f"rcon.password={rcon_password}",
@@ -369,11 +397,29 @@ def create(name, template=False):
                         f"online-mode={str(online_mode).casefold()}"]
                 server_properties.write("\n".join(data))
             logger.log("Downloading jars...", Logger.INFO)
-            download_file(type="server", name=mcVer(server_software), version=versions[minecraft_version])
-            plugin_str = ("{:0"+str(len(sources["plugins"]))+"b}").format(plugins)[::-1]
+            download_file(type="server", name=mcVer(server_software), version=versions[minecraft_version], dir=name+"/")
+            plugin_str = plugins
+            logger.log(f"plugin_str = {plugin_str}", Logger.DEBUG)
             plugin_list.reverse()
             for idx in range(len(plugin_str)):
-                plugin = plugin_list[idx]
+                plugin = plugin_list[idx][0]
+                version = plugin_list[idx][1]
+                download = plugin_str[idx]
+                logger.log(f"plugin: {plugin}, {version}, {download}", Logger.DEBUG)
+                if download == "1":
+                    download_file(type="plugins", name=plugin, version=version, dir=f"{name}/plugins/")
+            if auth_plugin:
+                if auth_plugin_id == 0:
+                    plugin = "authme"
+                    download_file(type="auth", name=plugin, version=auth_ver, dir=f"{name}/plugins/")
+                else:
+                    plugin = "nexauth"
+                    download_file(type="auth", name=plugin, version=auth_ver, dir=f"{name}/plugins/")
+
+                logger.log(f"Auth plugin: {plugin}, {auth_ver}", Logger.DEBUG)
+            logger.log("Done.")
+            logger.log(f"You can start your server with the command 'java -Xmx4G -jar <server jar> --nogui' or by double clicking the server jar.")
+
 
 
         else:
@@ -394,16 +440,36 @@ try:
             logger.log("            MCSERVERINSTALLER            ", Logger.INFO)
             logger.log("-----------------------------------------", Logger.INFO)
             logger.log("exit | Exits the program", Logger.INFO)
-            logger.log("new <name> [template]| Creates a new server", Logger.INFO)
+            logger.log("new <name> [template (not finished)]| Creates a new server", Logger.INFO)
             logger.log("delete <name> | deletes a server", Logger.INFO)
-            logger.log("installdir <path> | sets the installation directory", Logger.INFO)
-            logger.log("template <...>", Logger.INFO)
-            logger.log("          create <name> | Creates a new server template", Logger.INFO)
-            logger.log("          delete <name> | Creates a new server template", Logger.INFO)
-            logger.log("          display <name> | Prints the data of a template", Logger.INFO)
-            logger.log("          list | Lists the available templates", Logger.INFO)
-        elif cmd[0].casefold() == "create":
-            create(cmd[1])
+            #logger.log("installdir <path> | sets the installation directory", Logger.INFO)
+            #logger.log("template <...>", Logger.INFO)
+            #logger.log("          create <name> | Creates a new server template", Logger.INFO)
+            #logger.log("          delete <name> | Creates a new server template", Logger.INFO)
+            #logger.log("          display <name> | Prints the data of a template", Logger.INFO)
+            #logger.log("          list | Lists the available templates", Logger.INFO)
+        elif cmd[0].casefold() == "new":
+            if len(cmd) >= 2:
+                create(cmd[1])
+            else:
+                logger.log("Usage: new <name> [template]", Logger.ERR)
+        elif cmd[0].casefold() == "delete":
+            if len(cmd) == 2:
+                if cmd[1].casefold() in ("logs", "templates", "/", "C:/"):
+                    logger.log("You can not delete this folder.", Logger.ERR)
+                logger.log(f"YOU ARE ABOUT TO DELETE '{cmd[1]}' ARE YOU SURE?", Logger.WARN)
+                choice = None
+                while choice == None:
+                    choice = input("do you want to continue (y/n) [n]? ")
+                    if choice == "":
+                        choice = "n"
+                    elif choice.casefold() == "y":
+                        logger.log(f"Deleting server '{cmd[1]}'")
+                        shutil.rmtree(cmd[1])
+                    elif choice.casefold() == "n":
+                        logger.log("Cancelled.")
+            else:
+                logger.log("Usage: delete <name>", Logger.ERR)
 except KeyboardInterrupt:
     logger.log("Exiting...", Logger.INFO)
     os._exit(0)
