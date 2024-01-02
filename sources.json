@@ -32,7 +32,7 @@
   "plugins": {
     "essentials": {
       "latest": "https://github.com/EssentialsX/Essentials/releases/download/2.20.1/EssentialsX-2.20.1.jar",
-      "latset-dev-version": "https://ci.ender.zone/job/EssentialsX/lastSuccessfulBuild/artifact/jars/EssentialsX-2.21.0-dev+24-0af4436.jar"
+      "latest-dev-version": "https://ci.ender.zone/job/EssentialsX/lastSuccessfulBuild/artifact/jars/EssentialsX-2.21.0-dev+24-0af4436.jar"
     },
     "worldedit": {
       "latest": "https://dev.bukkit.org/projects/worldedit/files/4954406/download",
@@ -47,8 +47,8 @@
       "1.8.1.11.x": "https://dev.bukkit.org/projects/worldguard/files/956770/download"
     },
     "skinsrestorer": {
-      "latest": "https://www.spigotmc.org/resources/skinsrestorer.2124/download?version=522512",
-      "latest-github": "https://github.com/SkinsRestorer/SkinsRestorerX/releases/download/15.0.4/SkinsRestorer.jar"
+      "latest": "https://github.com/SkinsRestorer/SkinsRestorerX/releases/download/15.0.4/SkinsRestorer.jar",
+      "latest-spigot": "https://www.spigotmc.org/resources/skinsrestorer.2124/download?version=522512"
     },
     "multiverse-core": {
       "latest": "https://dev.bukkit.org/projects/multiverse-core/files/4744018/download",
