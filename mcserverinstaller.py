@@ -76,7 +76,7 @@ class Logger:
 logger = Logger()
 logger.setLogLevel(Logger.DEBUG)
 
-def cleatConsole():
+def clearConsole():
     cmd = "clear"
     if os.name in ("nt", "dos"):
         cmd = "cls"
@@ -150,21 +150,37 @@ def download_file(type, name, version, dir=""):
 
 def create(name, template=False):
 
-    server_software = None
-    minecraft_version = None
-    eula = None
-    port = None
-    world_name = None
-    rcon = None
-    rcon_password = None
-    online_mode = None
+    server_settings = {
+        "software": None,
+        "version": None,
+        "eula": None,
+        "server-port": None,
+        "world-name": None,
+        "rcon-enabled": None,
+        "rcon-port": None,
+        "rcon-password": None,
+        "online-mode": None,
+        "auth_plugin": {"plugins": {},
+                        "selected": {"name": None,
+                                     "version": None},
+                        "download": None},
+        "plugins": {"available": {},
+                    "ids": {},
+                    "plugin_string": None,
+                    "plugin_versions": {}}
+    }
+    idx = 0
+    for plugin in sources["plugins"]:
+        server_settings["plugins"]["available"][plugin] = list(i for i in sources["plugins"][plugin])
+        server_settings["plugins"]["ids"][str(idx)] = plugin
+        idx += 1
 
-    auth_plugin = None
-    auth_plugin_id = None
+    for plugin in sources["auth"]:
+        server_settings["auth_plugin"]["plugins"][plugin] = list(i for i in sources["auth"][plugin])
 
-    plugins = None
+    logger.log(json.dumps(server_settings, indent=2), Logger.DEBUG)
 
-    cleatConsole()
+    clearConsole()
     print("Available server softwares:")
     print("0 | Vanilla")
     print("1 | Spigot")
@@ -173,214 +189,238 @@ def create(name, template=False):
     print("10 | Bungeecord")
     print("11 | Velocity (Bungee)")
     print("12 | Waterfall (Bungee)")
-    while server_software == None:
-        server_software = input("Server software [2]: ")
-        if server_software == "":
-            server_software = 2
-            break
+    while server_settings["software"] == None:
+        software = input("Server software [2]: ")
+        if software == "":
+            server_settings["software"] = mcVer(2)
         try:
-            server_software = int(server_software)
+            server_settings["software"] = mcVer(int(software))
         except ValueError:
             print("Invalid response")
+            server_settings["software"] = None
+
 
     print("Select your minecraft version:")
-    tmp = 0
-    versions = []
-    for ver in sources["server"][mcVer(server_software)]:
-        print(f"{tmp} | {ver}")
-        tmp += 1
-        versions.append(ver)
-    while minecraft_version == None:
-        minecraft_version = input("Minecraft version [0]: ")
-        if minecraft_version == "":
-            minecraft_version = 0
-            break
+    versions = list(ver for ver in sources["server"][server_settings["software"]])
+    for idx in range(len(versions)):
+        print(f"{idx} | {versions[idx]}")
+    while server_settings["version"] == None:
+        version = input("Minecraft version [0]: ")
+        if version == "":
+            version = 0
         try:
-            minecraft_version = int(minecraft_version)
-            if minecraft_version > tmp:
-                print(f"Minecraft version should be between 0 and {tmp-1}")
-                minecraft_version = None
+            server_settings["version"] = versions[(int(version))]
+            if int(version) > len(versions):
+                print(f"Minecraft version should be between 0 and {len(versions)-1}")
+                server_settings["version"] = None
         except ValueError:
             print("Invalid number!")
-            minecraft_version = None
+            server_settings["version"] = None
 
-    cleatConsole()
-    while eula == None:
+    clearConsole()
+    while server_settings["eula"] == None:
         eula = input("Do you accept the Minecraft EULA (y/n) [y]? ")
         if eula.casefold() == "n":
-            eula = False
+            server_settings["eula"] = False
         elif eula.casefold() == "y":
-            eula = True
+            server_settings["eula"] = True
         elif eula == "":
-            eula = True
+            server_settings["eula"] = True
         else:
             print("Invalid response! (y/n)")
-            eula = None
+            server_settings["eula"] = None
 
-    cleatConsole()
-    while port == None:
+    clearConsole()
+    while server_settings["server-port"] == None:
         port = input("Server port [25565]: ")
         if port == "":
-            port = 25565
+            server_settings["server-port"] = 25565
             break
         try:
-            port = int(port)
+            server_settings["server-port"] = int(port)
         except ValueError:
-            port = None
+            print("Invalid number")
+            server_settings["server-port"] = None
 
-    cleatConsole()
-    world_name = input("Default world name [world]: ")
-    if world_name == "":
-        world_name = "world"
+    clearConsole()
+    while server_settings["world-name"] == None:
+        world_name = input("Default world name [world]: ")
+        if " " in world_name:
+            print("Invalid world name")
+            server_settings["world-name"] = None
+            continue
+        if world_name == "":
+            server_settings["world-name"] = "world"
+        else:
+            server_settings["world-name"] = world_name
 
-    cleatConsole()
-    while rcon == None:
+    clearConsole()
+    while server_settings["rcon-enabled"] == None:
         rcon = input("Rcon enabled (y/n) [n]? ")
         if rcon.casefold() == "n":
-            rcon = False
+            server_settings["rcon-enabled"] = False
         elif rcon.casefold() == "y":
-            rcon = True
+            server_settings["rcon-enabled"] = True
         elif rcon == "":
-            rcon = False
+            server_settings["rcon-enabled"] = False
         else:
             print("Invalid response! (y/n)")
-            rcon = None
+            server_settings["rcon-enabled"] = None
 
-    if rcon:
-        rcon_password = getpass.getpass(prompt="Rcon password: (rconpassword123) ")
+    if server_settings["rcon-enabled"]:
+        while server_settings["rcon-port"] == None:
+            rcon_port = input("RCON port [25575]: ")
+            if rcon_port == "":
+                server_settings["rcon-port"] = 25575
+                break
+            else:
+                try:
+                    if int(rcon_port) < 65536:
+                        server_settings["rcon-port"] = int(rcon_port)
+                    else:
+                        print("Port number must be between 1 and 65535")
+                        server_settings["rcon-port"] = None
+                except ValueError:
+                    print("Invalid port number")
+                    server_settings["rcon-port"] = None
+
+        rcon_password = getpass.getpass(prompt="Rcon password (input hidden) [rconpassword123]: ")
         if rcon_password == "":
-            rcon_password = "rconpassword123"
+            server_settings["rcon-password"] = "rconpassword123"
+        else:
+            server_settings["rcon-password"] = rcon_password
 
-    cleatConsole()
-    while online_mode == None:
+    clearConsole()
+    while server_settings["online-mode"] == None:
         online_mode = input("Online mode (y/n) [y]? ")
         if online_mode.casefold() == "n":
-            online_mode = False
+            server_settings["online-mode"] = False
         elif online_mode.casefold() == "y":
-            online_mode = True
+            server_settings["online-mode"] = True
         elif online_mode == "":
-            online_mode = True
+            server_settings["online-mode"] = True
         else:
             print("Invalid response! (y/n)")
-            online_mode = None
+            server_settings["online-mode"] = None
 
-    if not online_mode:
+    if not server_settings["online-mode"]:
         print("\033[33;1mWARNING! You're about to create a server in offline mode!\n"
               "This means that anyone can join the server without a minecraft account.\n"
               "It's recommended to install an auth plugin\033[0m")
-        while auth_plugin == None:
+        while server_settings["auth_plugin"]["download"] == None:
             auth_plugin = input("Do you want to install an auth plugin (y/n) [y]? ")
             if auth_plugin.casefold() == "n":
-                auth_plugin = False
+                server_settings["auth_plugin"]["download"] = False
             elif auth_plugin.casefold() == "y":
-                auth_plugin = True
+                server_settings["auth_plugin"]["download"] = True
             elif auth_plugin == "":
-                auth_plugin = True
+                server_settings["auth_plugin"]["download"] = True
             else:
                 print("Invalid response! (y/n)")
-                auth_plugin = None
+                server_settings["auth_plugin"]["download"] = None
 
-    if auth_plugin:
+    if server_settings["auth_plugin"]["download"]:
         print("Witch auth plugin do you want to use?")
         print("0 | authme (1.7-1.16.x recommended, but works on 1.16+)")
         print("1 | nexauth (1.17+)")
-        while auth_plugin_id == None:
+        while server_settings["auth_plugin"]["selected"]["name"] == None:
             auth_plugin_id = input("Choice [0]: ")
             if auth_plugin_id == "":
-                auth_plugin_id = 0
+                server_settings["auth_plugin"]["selected"]["name"] = "authme"
                 break
             try:
-                auth_plugin_id = int(auth_plugin_id)
-                if auth_plugin_id > 1:
+                if int(auth_plugin_id) == 0:
+                    server_settings["auth_plugin"]["selected"]["name"] = "authme"
+                elif int(auth_plugin_id) == 1:
+                    server_settings["auth_plugin"]["selected"]["name"] = "nexauth"
+                else:
                     print("Plugin ID should be 0 or 1")
-                    auth_plugin_id = None
-            except:
+                    server_settings["auth_plugin"]["selected"]["name"] = None
+            except ValueError:
                 print("Invalid plugin ID")
                 auth_plugin_id = None
-        auth_plugins = list(name for name in sources["auth"])
-        plugin_versions = list(ver for ver in sources["auth"][auth_plugins[auth_plugin_id]])
+        plugin_versions = server_settings["auth_plugin"]["plugins"][server_settings["auth_plugin"]["selected"]["name"]]
         auth_ver = None
         if len(plugin_versions) > 1:
             print("Choose the version for the auth plugin")
             for ver in plugin_versions:
                 print(f"{plugin_versions.index(ver)} | {ver}")
-            while auth_ver == None:
+            while server_settings["auth_plugin"]["selected"]["version"] == None:
                 choice = input("Auth plugin version [0]: ")
                 if choice == "":
-                    auth_ver = 0
+                    server_settings["auth_plugin"]["selected"]["version"] = plugin_versions[0]
                 else:
                     try:
-                        choice = int(choice)
-                    except:
+                        server_settings["auth_plugin"]["selected"]["version"] = plugin_versions[int(choice)]
+                        if int(choice) > len(plugin_versions):
+                            server_settings["auth_plugin"]["selected"]["version"] = None
+                            print(f"The version number must be between 0 and {len(plugin_versions)}")
+                    except ValueError:
                         print("Invalid number")
-                        auth_ver = None
+                        server_settings["auth_plugin"]["selected"]["version"] = None
                         continue
-                    if choice > len(plugin_versions):
-                        auth_ver = None
-                        print(f"The version number must be between 0 and {len(plugin_versions)}")
+
         else:
-            auth_ver = "latest"
+            server_settings["auth_plugin"]["selected"]["version"] = "latest"
 
 
 
-    cleatConsole()
+    clearConsole()
     print("Plugins that can be preinstalled:")
     tmp = 0
-    plugin_list = []
-    for plugin in sources["plugins"]:
+    for plugin in server_settings["plugins"]["available"]:
         print(f"{2**tmp} | {plugin}")
         tmp += 1
-        plugin_list.append([plugin, None])
 
-    print("Type in the sum of the plugin's ids (for example plugin 1 and plugin 3 is plugin int 5)")
-    while plugins == None:
+    print("Type in the sum of the plugin's ids (for example plugin 1 and plugin 3 is 5)")
+    while server_settings["plugins"]["plugin_string"] == None:
         plugins = input("Plugins [0]: ")
         if plugins == "":
-            plugins = 0
+            server_settings["plugins"]["plugin_string"] = "0"*len(server_settings["plugins"]["available"])-1
             break
         try:
             plugins = int(plugins)
         except:
             print("Invalid number.")
-            plugins = None
+            server_settings["plugins"]["plugin_string"] = None
             continue
-        plugins = ("{:0"+str(len(sources["plugins"]))+"b}").format(int(plugins))
+        plugins = ("{:0"+str(len(server_settings["plugins"]["available"])-1)+"b}").format(int(plugins))
         if len(plugins) > len(sources["plugins"]):
             print("Too large plugin int. Please check your calculations")
-            plugins = None
-
-    for plugin in plugin_list:
-        if len(sources["plugins"][plugin[0]]) > 1:
-            versions = []
-            for ver in sources["plugins"][plugin[0]]:
-                versions.append(ver)
-
-            print(f"Choose version for plugin '{plugin[0]}'")
-            tmp = 0
-            for ver in sources["plugins"][plugin[0]]:
-                print(f"{tmp} | {ver}")
-                tmp += 1
-            while plugin_list[plugin_list.index(plugin)][1] == None:
-                choice = input("Plugin version [0]: ")
-                if choice == "":
-                    plugin_list[plugin_list.index(plugin)][1] = 0
-                    break
-                try:
-                    choice = int(choice)
-                except:
-                    print("Invalid number")
-                    plugin_list[plugin_list.index(plugin)][1] = None
-                if not choice <= tmp:
-                    print(f"The answer must be between 0 and {tmp}")
-                    plugin_list[plugin_list.index(plugin)][1] = None
-
+            server_settings["plugins"]["plugin_string"] = None
         else:
-            plugin_list[plugin_list.index(plugin)][1] = "latest"
+            server_settings["plugins"]["plugin_string"] = plugins[::-1]
 
+    for idx in range(len(server_settings["plugins"]["available"])):
+        if server_settings["plugins"]["plugin_string"][idx] == "1":
+            if len(server_settings["plugins"]["available"][server_settings["plugins"]["ids"][str(idx)]]) > 1:
+
+                print(f"Choose version for plugin '{server_settings["plugins"]["ids"][str(idx)]}'")
+                tmp = 0
+                for ver in sources["plugins"][server_settings["plugins"]["ids"][str(idx)]]:
+                    print(f"{tmp} | {ver}")
+                    tmp += 1
+                server_settings["plugins"]["plugin_versions"][server_settings["plugins"]["ids"][str(idx)]] = None
+                while server_settings["plugins"]["plugin_versions"][server_settings["plugins"]["ids"][str(idx)]] == None:
+                    choice = input("Plugin version [0]: ")
+                    if choice == "":
+                        server_settings["plugins"]["plugin_versions"][server_settings["plugins"]["ids"][str(idx)]] = server_settings["plugins"]["available"][server_settings["plugins"]["ids"][str(idx)]][0]
+                        break
+                    try:
+                        server_settings["plugins"]["plugin_versions"][server_settings["plugins"]["ids"][str(idx)]] = server_settings["plugins"]["available"][server_settings["plugins"]["ids"][str(idx)]][int(choice)]
+                    except:
+                        print("Invalid number")
+                        server_settings["plugins"]["plugin_versions"][server_settings["plugins"]["ids"][str(idx)]] = None
+                    if not choice <= tmp:
+                        print(f"The answer must be between 0 and {tmp}")
+                        server_settings["plugins"]["plugin_versions"][server_settings["plugins"]["ids"][str(idx)]] = None
+
+            else:
+                server_settings["plugins"]["plugin_versions"][server_settings["plugins"]["ids"][str(idx)]] = "latest"
 
 
     if not template:
-        if server_software <= 3:  # 0-3 are the spigot/bukkit forks
+        if server_settings["software"] in ("vanilla", "spigot", "paper", "purpur"):
             logger.log("Creating directories...", Logger.INFO)
             try:
                 os.makedirs(name)
@@ -391,47 +431,35 @@ def create(name, template=False):
                 logger.log(f"Exception: {e}", Logger.FATAL)
                 return
             logger.log("Creating server.properties", Logger.INFO)
+
+            # user inputted settings
             with open(name+"/server.properties", 'w') as server_properties:
-                if rcon_password == None:
-                    rcon_password = ""
-                data = [f"server-port={port}",
-                        f"enable-rcon={str(rcon).casefold()}",
-                        f"rcon.password={rcon_password}",
-                        f"level-name={world_name}",
-                        f"online-mode={str(online_mode).casefold()}"]
+                if server_settings["rcon-password"] == None:
+                    server_settings["rcon-password"] = ""
+                data = [f"server-port={server_settings["server-port"]}",
+                        f"enable-rcon={str(server_settings["rcon-enabled"]).casefold()}",
+                        f"rcon.password={server_settings["rcon-password"]}",
+                        f"rcon.port={server_settings["rcon-port"]}"
+                        f"level-name={server_settings["world-name"]}",
+                        f"online-mode={str(server_settings["online-mode"]).casefold()}"]
                 server_properties.write("\n".join(data))
+            if server_settings["eula"]:
+                with open(name+"/eula.txt", 'w') as eula_file:
+                    eula_file.write("eula=true")
+
+
+            logger.log(server_settings["plugins"]["plugin_string"], Logger.DEBUG)
+            # download jars
             logger.log("Downloading jars...", Logger.INFO)
-            download_file(type="server", name=mcVer(server_software), version=versions[minecraft_version], dir=name+"/")
-            plugin_str = plugins
-            logger.log(f"plugin_str = {plugin_str}", Logger.DEBUG)
-            plugin_list.reverse()
-            for idx in range(len(plugin_str)):
-                plugin = plugin_list[idx][0]
-                version = plugin_list[idx][1]
-                download = plugin_str[idx]
-                logger.log(f"plugin: {plugin}, {version}, {download}", Logger.DEBUG)
-                if download == "1":
-                    download_file(type="plugins", name=plugin, version=version, dir=f"{name}/plugins/")
-            if auth_plugin:
-                if auth_plugin_id == 0:
-                    plugin = "authme"
-                    download_file(type="auth", name=plugin, version=auth_ver, dir=f"{name}/plugins/")
-                else:
-                    plugin = "nexauth"
-                    download_file(type="auth", name=plugin, version=auth_ver, dir=f"{name}/plugins/")
-
-                logger.log(f"Auth plugin: {plugin}, {auth_ver}", Logger.DEBUG)
-            logger.log("Done.")
-            logger.log(f"You can start your server with the command 'java -Xmx4G -jar <server jar> --nogui' or by double clicking the server jar.")
+            download_file(type="server", name=server_settings["software"], version=server_settings["version"],
+                          dir=name+"/")
+            for plugin in server_settings["plugins"]["plugin_versions"]:
+                download_file(type="plugins", name=plugin, version=server_settings["plugins"]["plugin_versions"][plugin], dir=name+"/plugins")
 
 
 
-        else:
-            logger.log("Editing bungee settings is not supported yet. The files will be downloaded, but the settings will not be saved.", Logger.WARN)
-
-
-if not os.path.exists("templates/"):
-    os.mkdir("templates/")
+# if not os.path.exists("templates/"):
+#     os.mkdir("templates/")
 try:
     while True:
         cmd = input("> ").split(" ")
