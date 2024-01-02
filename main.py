@@ -8,7 +8,9 @@ import requests
 
 cmdline_args = sys.argv
 
-
+print("-----------------------------------------")
+print("            MCSERVERINSTALLER            ")
+print("-----------------------------------------")
 class Logger:
     DEBUG = 0
     INFO = 1
@@ -439,7 +441,7 @@ try:
             break
         elif cmd[0].casefold() == "help":
             logger.log("-----------------------------------------", Logger.INFO)
-            logger.log("            MCSERVERINSTALLER            ", Logger.INFO)
+            logger.log("                   HELP                  ", Logger.INFO)
             logger.log("-----------------------------------------", Logger.INFO)
             logger.log("exit | Exits the program", Logger.INFO)
             logger.log("new <name> [template (not finished)]| Creates a new server", Logger.INFO)
