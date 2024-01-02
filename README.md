@@ -6,3 +6,9 @@ Use the `new <server name>` command to create a new server, then follow the inst
 
 For example:
 ```new example_server```
+
+## Dependencies:
+- **Requests**
+  ```
+  pip install requests
+  ```
